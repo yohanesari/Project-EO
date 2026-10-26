@@ -3,13 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-heading: "Libre Caslon Condensed", serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono);
+
+  --color-brand-sand: #f5efe6;
+  --color-brand-gold: #b8913f;
+  --color-brand-muted: #6b6b6b;
+  --color-brand-border: #e5ddd0;
+  --color-brand-dark: #1f1b16;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +29,8 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
 }
