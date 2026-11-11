@@ -4,7 +4,9 @@ const DATA = {
   bride: "Naya",
   dateLabel: "Sabtu, 12 Desember 2026",
   location: "Semarang, Jawa Tengah",
-  cover: "",
+  cover: "/customer/wedding_hero.jpg",
+  heroImage: "/customer/wedding_hero.jpg",       
+  footerImage: "/customer/wedding3.jpg",
   quote: "Isi dengan kutipan atau ayat pilihan Anda.",
   events: [
     {

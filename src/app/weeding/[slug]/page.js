@@ -1,17 +1,12 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Weeding from "@/component/weeding";
 import { getEventInfo } from "@/lib/event-info";
 import { slugify } from "@/lib/slug";
 
-export async function generateMetadata({ params }) {
-  const { slug } = await params;
-  const info = getEventInfo(slug);
-  return {
-    title: info ? `Undangan ${info.groom} & ${info.bride}` : "Undangan Pernikahan",
-  };
-}
+export const metadata = { title: "Undangan Pernikahan" };
 
-export default async function WeedingPage({ params }) {
+async function Invitation({ params }) {
   const { slug } = await params;
 
   const info = getEventInfo(slug);
@@ -22,4 +17,12 @@ export default async function WeedingPage({ params }) {
   if (slug !== expected) notFound();
 
   return <Weeding data={{ ...info, slug: expected }} />;
+}
+
+export default function WeedingPage({ params }) {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#3f3b2b]" />}>
+      <Invitation params={params} />
+    </Suspense>
+  );
 }

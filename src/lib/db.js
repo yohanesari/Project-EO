@@ -12,4 +12,5 @@ export const pool =
     waitForConnections: true,
     connectionLimit: 5,
     charset: "utf8mb4",
+    timezone: "Z", // DATETIME dibaca/ditulis sebagai UTC, jadi jam tidak bergeser
   }));

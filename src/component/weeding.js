@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import { slugify } from "@/lib/slug";
 import QrTicket from "@/component/QrTicket";
-import { CalendarDays, ArrowUpRight, Users, MapPin } from "lucide-react";
+import {
+  CalendarDays, ArrowUpRight, Users, MapPin, Church, Building2,
+  Images, Shirt, Clock3, Heart, Flower2,
+} from "lucide-react";
 
 const serif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -65,6 +68,14 @@ const css = `
   .band,.cover-text{transition-duration:.01s;transition-delay:0s}
   .is-live .seq{animation:none;opacity:1}
 }
+
+/* ===== SECTION TAMBAHAN: tetap memakai palet dan karakter template ===== */
+.section-kicker{letter-spacing:.24em;text-transform:uppercase;font-size:.65rem;color:#8a7655}
+.paper-card{background:#f3e9d9;border:1px solid rgba(63,59,43,.2)}
+.illustration-frame{display:grid;place-items:center;width:5rem;height:5rem;border:1px solid rgba(184,129,47,.55);border-radius:9999px;color:#6b6a45;background:rgba(220,205,182,.28)}
+.gallery-photo{width:100%;height:100%;object-fit:cover;transition:transform .7s ease}
+.gallery-frame{overflow:hidden;background:#dccdb6;border:7px solid #f3e9d9;box-shadow:0 5px 18px rgba(63,59,43,.1)}
+.gallery-frame:hover .gallery-photo{transform:scale(1.04)}
 `;
 
 function Paint({ cover, className = "", style }) {
@@ -73,6 +84,68 @@ function Paint({ cover, className = "", style }) {
       className={`paint ${cover ? "" : "paint-fallback"} ${className}`}
       style={{ ...(cover ? { backgroundImage: `url(${cover})` } : null), ...style }}
     />
+  );
+}
+
+function Countdown({ targetDate, label = "Menuju hari bahagia" }) {
+  const getRemaining = () => {
+    const target = new Date(targetDate).getTime();
+    if (!Number.isFinite(target)) return null;
+    const distance = Math.max(0, target - Date.now());
+    return {
+      days: Math.floor(distance / 86400000),
+      hours: Math.floor((distance % 86400000) / 3600000),
+      minutes: Math.floor((distance % 3600000) / 60000),
+      seconds: Math.floor((distance % 60000) / 1000),
+      finished: target <= Date.now(),
+    };
+  };
+  const [remaining, setRemaining] = useState(getRemaining);
+
+  useEffect(() => {
+    const update = () => setRemaining(getRemaining());
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [targetDate]);
+
+  if (!remaining) return null;
+  const units = [
+    [remaining.days, "Hari"],
+    [remaining.hours, "Jam"],
+    [remaining.minutes, "Menit"],
+    [remaining.seconds, "Detik"],
+  ];
+
+  return (
+    <section className="px-6 py-20 text-center">
+      <Flower2 className="mx-auto h-5 w-5 text-[#b8812f]" strokeWidth={1.2} />
+      <p className="section-kicker mt-4">The day is coming</p>
+      <h3 className={`${serif.className} mt-2 text-4xl font-light`}>{label}</h3>
+      {remaining.finished ? (
+        <p className="mt-7 text-sm tracking-[.18em]">HARI BAHAGIA TELAH TIBA</p>
+      ) : (
+        <div className="mx-auto mt-9 grid max-w-lg grid-cols-4 gap-2 sm:gap-4">
+          {units.map(([value, unit]) => (
+            <div key={unit} className="border-y border-[#b8812f]/50 py-4">
+              <p className={`${serif.className} text-3xl font-light tabular-nums sm:text-5xl`}>
+                {String(value).padStart(2, "0")}
+              </p>
+              <p className="mt-2 text-[10px] uppercase tracking-[.16em] text-[#3f3b2b]/65">{unit}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EventIllustration({ type }) {
+  const Icon = type === "ceremony" ? Church : type === "reception" ? Building2 : MapPin;
+  return (
+    <div className="illustration-frame" aria-hidden="true">
+      <Icon size={38} strokeWidth={1.1} />
+    </div>
   );
 }
 
@@ -92,6 +165,7 @@ export default function Weeding({ data: DATA }) {
     const to = new URLSearchParams(window.location.search).get("to");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (to) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGuest(to);
       setName(to);
     }
@@ -121,6 +195,7 @@ export default function Weeding({ data: DATA }) {
   };
 
   const place = DATA.location || DATA.events?.[0]?.place || "";
+  const countdownTarget = DATA.countdown?.targetDate;
 
   const submitRsvp = async (e) => {
     e.preventDefault();
@@ -311,35 +386,111 @@ export default function Weeding({ data: DATA }) {
           </p>
         </section>
 
-        {/* Acara */}
+        {/* Countdown: aktif jika targetDate disediakan pada DATA */}
+        {DATA.countdown?.enabled !== false && countdownTarget && (
+          <Countdown
+            targetDate={countdownTarget}
+            label={DATA.countdown?.label || "Menuju hari bahagia"}
+          />
+        )}
+
+        {/* Waktu & tempat: ilustrasi berbeda untuk pemberkatan dan resepsi */}
         <section className="bg-[#dccdb6] px-6 py-24">
-          <h3 className={`${serif.className} text-center text-4xl font-light`}>
-            Waktu &amp; tempat
-          </h3>
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="section-kicker">Save the date</p>
+            <h3 className={`${serif.className} mt-3 text-4xl font-light`}>Waktu &amp; tempat</h3>
+            <p className="mt-3 text-sm font-light text-[#3f3b2b]/65">Dengan penuh sukacita, kami mengundang Anda untuk hadir.</p>
+          </div>
           <div className="mx-auto mt-12 grid max-w-3xl gap-6 sm:grid-cols-2">
-            {DATA.events.map((e) => (
-              <article
-                key={e.title}
-                className="flex flex-col border border-[#3f3b2b]/25 bg-[#f3e9d9] p-8"
-              >
-                <h4 className={`${serif.className} text-3xl font-normal`}>{e.title}</h4>
-                <p className="mt-4 text-sm font-medium">{DATA.dateLabel}</p>
-                <p className="text-sm text-[#3f3b2b]/70">{e.time}</p>
-                <p className="mt-4 font-medium">{e.place}</p>
-                <p className="text-sm text-[#3f3b2b]/70">{e.address}</p>
-                <a
-                  href={e.maps}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="link-line mt-6 inline-flex items-center gap-1 self-start border-b border-[#3f3b2b] pb-0.5 text-sm font-medium hover:text-[#8a5f1e]"
-                >
-                  Buka di Google Maps
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-              </article>
-            ))}
+            {(DATA.events || []).map((e, index) => {
+              const inferredType = e.type || (/resepsi|reception/i.test(e.title || "") ? "reception" : /pemberkatan|ceremony|holy matrimony/i.test(e.title || "") ? "ceremony" : "event");
+              return (
+                <article key={`${e.title}-${index}`} className="paper-card flex flex-col items-center px-7 py-9 text-center shadow-[0_8px_24px_rgba(63,59,43,.06)]">
+                  <EventIllustration type={inferredType} />
+                  <p className="section-kicker mt-6">{inferredType === "ceremony" ? "Holy Matrimony" : inferredType === "reception" ? "Wedding Reception" : "Wedding Event"}</p>
+                  <h4 className={`${serif.className} mt-2 text-3xl font-normal`}>{e.title}</h4>
+                  <div className="my-5 h-px w-12 bg-[#b8812f]/70" />
+                  <p className="text-sm font-medium">{e.dateLabel || DATA.dateLabel}</p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-[#3f3b2b]/70"><Clock3 className="h-4 w-4" />{e.time}</p>
+                  <p className="mt-5 font-medium">{e.place}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-[#3f3b2b]/65">{e.address}</p>
+                  {e.maps && (
+                    <a href={e.maps} target="_blank" rel="noreferrer" className="link-line mt-6 inline-flex items-center gap-1 border-b border-[#3f3b2b] pb-0.5 text-sm font-medium hover:text-[#8a5f1e]">
+                      Lihat lokasi <ArrowUpRight className="h-4 w-4" />
+                    </a>
+                  )}
+                </article>
+              );
+            })}
           </div>
         </section>
+
+        {/* Galeri foto: opsional, isi DATA.gallery dengan array foto */}
+        {Array.isArray(DATA.gallery) && DATA.gallery.length > 0 && (
+          <section className="mx-auto max-w-5xl px-6 py-24 text-center">
+            <Images className="mx-auto h-5 w-5 text-[#b8812f]" strokeWidth={1.3} />
+            <p className="section-kicker mt-4">Our moments</p>
+            <h3 className={`${serif.className} mt-2 text-4xl font-light`}>{DATA.galleryTitle || "Cerita kami"}</h3>
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
+              {DATA.gallery.map((photo, index) => {
+                const src = typeof photo === "string" ? photo : photo.src;
+                const alt = typeof photo === "string" ? `Foto prewedding ${index + 1}` : (photo.alt || `Foto prewedding ${index + 1}`);
+                return (
+                  <div key={`${src}-${index}`} className={`gallery-frame aspect-[4/5] ${index === 1 ? "sm:translate-y-8" : ""}`}>
+                    <img src={src} alt={alt} loading="lazy" className="gallery-photo" />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Rundown kegiatan: opsional */}
+        {Array.isArray(DATA.itinerary) && DATA.itinerary.length > 0 && (
+          <section className="bg-[#e2d5c2] px-6 py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <CalendarDays className="mx-auto h-5 w-5 text-[#b8812f]" strokeWidth={1.3} />
+              <p className="section-kicker mt-4">Wedding day</p>
+              <h3 className={`${serif.className} mt-2 text-4xl font-light`}>{DATA.itineraryTitle || "Susunan acara"}</h3>
+            </div>
+            <ol className="mx-auto mt-12 max-w-xl">
+              {DATA.itinerary.map((item, index) => (
+                <li key={`${item.time}-${index}`} className="relative grid grid-cols-[5.5rem_1.5rem_1fr] gap-3 pb-9 last:pb-0">
+                  <p className="pt-0.5 text-right text-xs font-medium tracking-wide">{item.time}</p>
+                  <div className="relative flex justify-center">
+                    <span className="z-10 mt-1 h-2.5 w-2.5 rounded-full border border-[#b8812f] bg-[#f3e9d9]" />
+                    {index !== DATA.itinerary.length - 1 && <span className="absolute top-3 h-full w-px bg-[#b8812f]/45" />}
+                  </div>
+                  <div>
+                    <h4 className={`${serif.className} text-2xl font-normal`}>{item.title}</h4>
+                    {item.description && <p className="mt-1 text-sm font-light leading-relaxed text-[#3f3b2b]/65">{item.description}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {/* Dress code: opsional */}
+        {DATA.dressCode?.enabled !== false && DATA.dressCode && (
+          <section className="mx-auto max-w-xl px-6 py-24 text-center">
+            <Shirt className="mx-auto h-6 w-6 text-[#b8812f]" strokeWidth={1.2} />
+            <p className="section-kicker mt-4">A little note</p>
+            <h3 className={`${serif.className} mt-2 text-4xl font-light`}>{DATA.dressCode.title || "Dress code"}</h3>
+            {DATA.dressCode.description && <p className="mt-4 text-sm font-light leading-relaxed text-[#3f3b2b]/70">{DATA.dressCode.description}</p>}
+            {Array.isArray(DATA.dressCode.colors) && DATA.dressCode.colors.length > 0 && (
+              <div className="mt-7 flex flex-wrap justify-center gap-4">
+                {DATA.dressCode.colors.map((color, index) => (
+                  <div key={`${color.hex}-${index}`} className="flex flex-col items-center gap-2">
+                    <span className="h-10 w-10 rounded-full border border-[#3f3b2b]/15 shadow-sm" style={{ backgroundColor: color.hex }} />
+                    <span className="text-xs text-[#3f3b2b]/70">{color.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {DATA.dressCode.avoid?.length > 0 && <p className="mt-6 text-xs font-light text-[#3f3b2b]/60">Mohon hindari: {DATA.dressCode.avoid.join(", ")}</p>}
+          </section>
+        )}
 
         {/* RSVP */}
         <section className="mx-auto max-w-xl px-6 py-24 text-center">
@@ -520,6 +671,7 @@ export default function Weeding({ data: DATA }) {
           />
           <div className="paint-tone" />
           <div className="relative">
+            <Heart className="mx-auto mb-3 h-5 w-5 text-[#e4c99a]" strokeWidth={1.2} />
             <p className="text-sm font-light text-[#f3e9d9]/80">
               Terima kasih atas doa dan kehadirannya.
             </p>

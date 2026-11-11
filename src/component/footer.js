@@ -1,6 +1,13 @@
 import Link from "next/link";
+import { cacheLife } from "next/cache";
 
 export default function Footer() {
+  async function Year() {
+    "use cache";
+    cacheLife("days");
+    return new Date().getFullYear();
+  }
+
   return (
     <footer className="bg-black text-white/80">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
